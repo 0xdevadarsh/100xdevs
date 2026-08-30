@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "01-async",
   "version": "1.0.0",
   "description": "This folder contains assignments related to asynchronous JavaScript.",

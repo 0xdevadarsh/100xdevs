@@ -5,18 +5,27 @@
  */
 
 function wait1(t) {
+    const p = new Promise((res, rej) => {
+        setTimeout(() => res() , t * 1000)
+    })
 
-}
-
-function wait2(t) {
-
-}
-
-function wait3(t) {
-
+    return p 
 }
 
 function calculateTime(t1, t2, t3) {
+    const startTime = Date.now()
+    const p1 = wait1(t1)
+    const p2 = wait1(t2)
+    const p3 = wait1(t3)
+
+    return Promise.all([p1, p2, p3])
+        .then(() => {
+            const endTime = Date.now();
+            return endTime - startTime
+        })
+        .catch()
+
+
 
 }
 

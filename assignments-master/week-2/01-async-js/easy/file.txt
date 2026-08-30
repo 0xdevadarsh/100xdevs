@@ -1,0 +1,2 @@
+Hello there !
+I want to build real world systems by end of this year. Appending content to the file via 4-write-to-file.js
