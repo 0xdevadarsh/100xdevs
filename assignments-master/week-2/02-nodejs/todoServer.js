@@ -41,9 +41,194 @@
  */
   const express = require('express');
   const bodyParser = require('body-parser');
-  
+  const path = require("path")
+  const fs = require("fs")
+  const crypto = require("crypto");
+
   const app = express();
   
   app.use(bodyParser.json());
+
+
+
+/**
+  1.GET /todos - Retrieve all todo items
+    Description: Returns a list of all todo items.
+    Response: 200 OK with an array of todo items in JSON format.
+    Example: GET http://localhost:3000/todos
+ */
+app.get("/todos", (req, res) => {
+  const todoStorage = path.join(__dirname , "todos.json")
+  fs.readFile(todoStorage , 'utf-8', (err, data) => {
+    if (err) {
+      res.status(500).send("Unable to fetch the data storage")
+      return
+    } 
+    const todosList = JSON.parse(data)
+    res.status(200).send(todosList)
+    
+  })
+})
+
+
+/**
+  2.GET /todos/:id - Retrieve a specific todo item by ID
+    Description: Returns a specific todo item identified by its ID.
+    Response: 200 OK with the todo item in JSON format if found, or 404 Not Found if not found.
+    Example: GET http://localhost:3000/todos/123
+ */
+app.get("/todos/:id", (req, res) => {
+  const requestedTodoId = req.params["id"]
+  const todoStorage = path.join(__dirname , "todos.json")
+  fs.readFile(todoStorage , 'utf-8', (err, data) => {
+    if (err) {
+      res.status(500).send("Unable to fetch the data storage")
+      return 
+    }
+    const todosList = JSON.parse(data)
+    const filteredList = todosList.filter((todo) => todo["id"] == requestedTodoId)
+    if (filteredList.length === 0){
+      res.status(404).send("Not Found")
+    } else {
+      res.status(200).json(filteredList[0])
+    }
+  })
+})
+
+
+/**
+  3.POST /todos - Create a new todo item
+    Description: Creates a new todo item.
+    Request Body: JSON object representing the todo item.
+    Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
+    Example: POST http://localhost:3000/todos
+    Request Body: { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
+ */  
+app.post("/todos", (req, res) => {
+  const id = crypto.randomUUID()
+  const title = req.body["title"]
+  const completed = req.body["completed"]
+  const description = req.body["description"]
+
+  const todoStorage = path.join(__dirname , "todos.json")
+  fs.readFile(todoStorage , 'utf-8', (err, data) => {
+    if (err) {
+      res.status(500).send("Unable to fetch the data storage")
+      return 
+    }
+    const todosList = JSON.parse(data)
+    todosList.push({
+      id,
+      title,
+      completed,
+      description,
+    })
+
+    fs.writeFile(todoStorage, JSON.stringify(todosList), (err) => {
+      if (err) {
+        res.status(500).send("Data Store Failure")
+      }
+      res.status(201).json({id, })
+    });
+  }) 
+})
+
+/**
+  4. PUT /todos/:id - Update an existing todo item by ID
+    Description: Updates an existing todo item identified by its ID.
+    Request Body: JSON object representing the updated todo item.
+    Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
+    Example: PUT http://localhost:3000/todos/123
+    Request Body: { "title": "Buy groceries", "completed": true }
+ */
+app.put("/todos/:id", (req, res) => {
+  const requestedTodoId = req.params.id;
+  const todoStorage = path.join(__dirname, "todos.json");
+
+  fs.readFile(todoStorage, "utf-8", (err, data) => {
+    if (err) {
+      return res.status(500).send("Unable to fetch the data storage");
+    }
+
+    const todosList = JSON.parse(data);
+
+    const todo = todosList.find(
+      (todo) => todo.id === requestedTodoId
+    );
+
+    // Todo not found
+    if (!todo) {
+      return res.status(404).send("Not Found");
+    }
+
+    // Update the values
+    if (req.body.title !== undefined) { todo.title = req.body.title;  }
+    if (req.body.description !== undefined) { todo.description = req.body.description;  }
+    if (req.body.completed !== undefined) { todo.completed = req.body.completed;  }
+
+    // Save updated list
+    fs.writeFile(
+      todoStorage,
+      JSON.stringify(todosList, null, 2),
+      (err) => {
+        if (err) {
+          return res.status(500).send("Data Store Failure");
+        }
+
+        res.status(200).send();
+      }
+    );
+  });
+});
+
+/**
+  5. DELETE /todos/:id - Delete a todo item by ID
+    Description: Deletes a todo item identified by its ID.
+    Response: 200 OK if the todo item was found and deleted, or 404 Not Found if not found.
+    Example: DELETE http://localhost:3000/todos/123
+ */
+app.delete("/todos/:id", (req, res) => {
+  const requestedTodoId = req.params.id;
+  const todoStorage = path.join(__dirname, "todos.json");
+
+  fs.readFile(todoStorage, "utf-8", (err, data) => {
+    if (err) {
+      return res.status(500).send("Unable to fetch the data storage");
+    }
+
+    const todosList = JSON.parse(data);
+
+    const todoIndex = todosList.findIndex(
+      (todo) => todo.id === requestedTodoId
+    );
+
+    // Todo not found
+    if (todoIndex === -1) {
+      return res.status(404).send("Not Found");
+    }
+
+    // Remove todo
+    todosList.splice(todoIndex, 1);
+
+    // Save updated list
+    fs.writeFile(
+      todoStorage,
+      JSON.stringify(todosList, null, 2),
+      (err) => {
+        if (err) {
+          return res.status(500).send("Data Store Failure");
+        }
+
+        res.status(200).send();
+      }
+    );
+  });
+});
+
+// for all other routes, return 404
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
   
   module.exports = app;
