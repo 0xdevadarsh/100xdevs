@@ -1,0 +1,33 @@
+.flex-box {
+    display: flex;
+    justify-content: space-around;
+}
+
+.navbar {
+    margin-bottom: 50px;
+    box-shadow: 0px 4px 10px lightgray; 
+;
+}
+
+#navbar-icon {
+    margin-top: 1%;
+    margin-bottom: 1%;
+
+}
+
+.navbar-components {
+    color: grey;
+    padding: 20px;
+    margin: 10px;
+}
+
+.center{
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.button-primary {
+    background-color: cornflowerblue;
+    color: whitesmoke;
+}
