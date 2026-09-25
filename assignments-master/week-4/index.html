@@ -7,16 +7,47 @@
     let todoState = [];
     let oldTodoState = [];
 
-    function addTodoToDom() {
+
+
+    function addTodoToDom(todo) {
+      const todoDiv = document.createElement('div')
+      todoDiv.classList.add('todo')
+      todoDiv.id = todo.id
+
+      const title = document.createElement('h2')
+      title.textContent = todo.title 
+
+      const description = document.createElement('p')
+      description.textContent = todo.description
+
+      const markAsDoneButton = document.createElement('button')
+      markAsDoneButton.textContent = 'Mark as Done!'
+      markAsDoneButton.addEventListener('click', () => {
+        removeTodo(markAsDoneButton)
+      })
+
       
+      todoDiv.appendChild(title)
+      todoDiv.appendChild(description)
+      todoDiv.appendChild(markAsDoneButton)
+
+      const todoContainer = document.getElementById('todos')
+      todoContainer.append(todoDiv)
     }
 
     function removeTodoFromDom(todo) {
-      
+      const todoId = todo.id
+      const todoDomRef = document.getElementById(todoId)
+      todoDomRef.remove()
     }
 
-    function updateTodoInDom(oldTodo, newTodo) {
-        
+    function updateTodoInDom(newTodo) {
+        const todoDomRef = document.getElementById(newTodo.id)
+        const [titleDomRef, descriptionDomRef, buttonDomRef] = todoDomRef.children 
+
+        titleDomRef.textContent = newTodo.title
+        descriptionDomRef.textContent = newTodo.description
+
     }
 
     function updateState(newTodos) {
@@ -25,13 +56,44 @@
       // 1. added
       // 2. deleted
       // 3. updated
-      const added = [];
-      const deleted = [];
-      const updated = [];
-      // calculate these 3 arrays
-      // call addTodo, removeTodo, updateTodo functions on each of the
-      // elements
-      oldTodoState = newTodos;
+
+
+      // todos Added = Present in new state - Absent in old state
+      const added = newTodos.filter(element => {
+        const matchingTodo = oldTodoState.filter(oldTodoElement => {
+          return oldTodoElement.id == element.id
+        })
+
+        return matchingTodo.length === 0
+      });
+
+      //todos Removed = Present in old state - Absent in new state
+      const deleted = oldTodoState.filter(element => {
+        const matchingTodo = newTodos.filter(newTodoElement => {
+          return newTodoElement.id == element.id 
+        })
+
+        return matchingTodo.length === 0
+      });
+
+
+      //todos Updates = change in key/values but present in both
+      const updated = newTodos.filter(element => {
+        const matchingTodo = oldTodoState.filter(oldTodoElement => {
+          return oldTodoElement.id == element.id
+        })
+
+        return ((matchingTodo.length > 0) && (element.title != matchingTodo[0].title || element.description != matchingTodo[0].description))
+      });
+
+      console.log(`Added: ${added}`)
+      console.log(`Removed: ${deleted}`)
+
+      added.forEach(t => {addTodoToDom(t)})
+      deleted.forEach(t => {removeTodoFromDom(t)})
+      updated.forEach(t => {updateTodoInDom(t)})
+
+      oldTodoState = [...newTodos];
     }
 
     function addTodo() {
@@ -42,8 +104,19 @@
         description: description,
         id: globalId++,
       })
+      console.log(todoState)
       updateState(todoState);
     }
+
+    function removeTodo(buttonReference) {
+      const todoId = buttonReference.parentElement.id 
+      todoState =  todoState.filter(todo => {
+        return todo.id != todoId 
+      })
+      // console.log(todoState)
+      updateState(todoState)
+    }
+
   </script>
 </head>
 
@@ -54,7 +127,12 @@
   <br /> <br />
 
   <div id="todos">
-
+    <!-- Sample HTML block for a Todo  -->
+    <!-- <div class="todo" id="{todo.id}">
+      <h2></h2>
+      <p></p>
+      <button onClick="removeTodo(this)"></button>
+    </div> -->
   </div>
 </body>
 
