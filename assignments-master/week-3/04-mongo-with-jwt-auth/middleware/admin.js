@@ -1,7 +1,20 @@
-// Middleware for handling auth
+const jwt = require('jwt')
+const dotenv = reuire('dotenv')
+
+dotenv.config()
+
+
 function adminMiddleware(req, res, next) {
-    // Implement admin auth logic
-    // You need to check the headers and validate the admin from the admin DB. Check readme for the exact headers to be expected
+    const auth = req.headers['Authorization']
+    const token = auth.split(' ')[1]
+
+    try {
+        const payload = jwt.verify(token, process.env.JWT_SIGNING_PASSWORD)
+        next()
+    } catch (error) {
+        res.status(401).json({ message : 'User is Invalid' })
+    }
+    
 }
 
 module.exports = adminMiddleware;
